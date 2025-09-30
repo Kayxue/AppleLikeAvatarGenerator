@@ -1,6 +1,6 @@
 name: apple_like_avatar_generator
 description: "A module can generate a text avatar like apple generated."
-version: 0.0.6
+version: 0.0.7
 repository: https://github.com/Kayxue/AppleLikeAvatarGenerator
 
 environment:

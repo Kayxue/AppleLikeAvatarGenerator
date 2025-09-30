@@ -40,9 +40,16 @@ fn get_name_to_display(name: String) -> String {
         return "?".to_string();
     }
     if parts.len() == 1 {
-        return parts[0][0..1].to_uppercase().to_string();
+        return parts[0].chars().nth(0).unwrap().to_uppercase().to_string();
     }
-    (parts[0][0..1].to_uppercase() + &parts[parts.len() - 1][0..1].to_uppercase()).to_string()
+    (parts[0].chars().nth(0).unwrap().to_uppercase().to_string()
+        + &parts[parts.len() - 1]
+            .chars()
+            .nth(0)
+            .unwrap()
+            .to_uppercase()
+            .to_string())
+        .to_string()
 }
 
 fn get_gradient_colors(name: String) -> (Color, Color) {
@@ -89,11 +96,11 @@ fn get_gradient_colors(name: String) -> (Color, Color) {
         ),
     ];
 
-    let mut hash = 0i32;
-    for c in name.chars() {
-        hash = (c as i32) + ((hash << 5) - hash);
-    }
-    let index:usize = hash.abs() as usize % gradients.len();
+    let digest = md5::compute(name.as_bytes());
+    let hashed_string = format!("{:x}", digest);
+    let part = &hashed_string[0..8];
+    let hash = usize::from_str_radix(part, 16).unwrap();
+    let index: usize = hash as usize % gradients.len();
     gradients[index]
 }
 
