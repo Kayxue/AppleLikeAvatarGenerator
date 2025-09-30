@@ -1,7 +1,7 @@
 name: apple_like_avatar_generator
 description: "A new Flutter FFI plugin project."
 version: 0.0.1
-homepage:
+repository: https://github.com/Kayxue/AppleLikeAvatarGenerator
 
 environment:
   sdk: ^3.9.2
