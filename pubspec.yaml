@@ -1,5 +1,5 @@
 name: apple_like_avatar_generator
-description: "A new Flutter FFI plugin project."
+description: "A module can generate a text avatar like apple generated."
 version: 0.0.5
 repository: https://github.com/Kayxue/AppleLikeAvatarGenerator
 
