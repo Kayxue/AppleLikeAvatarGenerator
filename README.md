@@ -4,7 +4,7 @@ A module can generate a text avatar like apple generated. Render engine powered 
 
 ## Screenshot
 
-![screenshot](./screenshot.png)
+![screenshot](https://raw.githubusercontent.com/Kayxue/AppleLikeAvatarGenerator/refs/heads/master/screenshot.png)
 
 ## Prerequisite
 Because this avatar generator depend on takumi, please make sure you have rust compiler with version 1.85.1 or above installed.
