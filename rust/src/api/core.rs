@@ -24,9 +24,9 @@ pub fn generate_with_name(name: String) -> Vec<u8> {
 
 #[flutter_rust_bridge::frb(positional)]
 pub fn generate_with_first_name_last_name(first_name: String, last_name: String) -> Vec<u8> {
-    let full_name = format!("{} {}", first_name, last_name);
-    let name_to_display = get_name_to_display(full_name.to_owned());
-    let colors = get_gradient_colors(full_name.to_owned());
+    let name_to_display = get_name_to_display_from_parts(first_name.to_owned(), last_name.to_owned());
+    let full_name = format!("{}{}", first_name, last_name);
+    let colors = get_gradient_colors(full_name);
     generate(name_to_display, colors)
 }
 
@@ -50,6 +50,68 @@ fn get_name_to_display(name: String) -> String {
             .to_uppercase()
             .to_string())
         .to_string()
+}
+
+fn is_chinese_char(c: char) -> bool {
+    // Check if character is in CJK Unified Ideographs range
+    matches!(c,
+        '\u{4E00}'..='\u{9FFF}' | // CJK Unified Ideographs
+        '\u{3400}'..='\u{4DBF}' | // CJK Unified Ideographs Extension A
+        '\u{20000}'..='\u{2A6DF}' | // CJK Unified Ideographs Extension B
+        '\u{2A700}'..='\u{2B73F}' | // CJK Unified Ideographs Extension C
+        '\u{2B740}'..='\u{2B81F}' | // CJK Unified Ideographs Extension D
+        '\u{2B820}'..='\u{2CEAF}' | // CJK Unified Ideographs Extension E
+        '\u{F900}'..='\u{FAFF}' | // CJK Compatibility Ideographs
+        '\u{2F800}'..='\u{2FA1F}' // CJK Compatibility Ideographs Supplement
+    )
+}
+
+fn has_chinese_chars(s: &str) -> bool {
+    s.chars().any(is_chinese_char)
+}
+
+fn get_name_to_display_from_parts(first_name: String, last_name: String) -> String {
+    let first_trimmed = first_name.trim();
+    let last_trimmed = last_name.trim();
+    
+    // Handle empty names
+    if first_trimmed.is_empty() && last_trimmed.is_empty() {
+        return "?".to_string();
+    }
+    if first_trimmed.is_empty() {
+        let first_char = last_trimmed.chars().nth(0).unwrap();
+        return first_char.to_uppercase().to_string();
+    }
+    if last_trimmed.is_empty() {
+        let first_char = first_trimmed.chars().nth(0).unwrap();
+        return first_char.to_uppercase().to_string();
+    }
+    
+    // Check if either name contains Chinese characters
+    let has_chinese = has_chinese_chars(first_trimmed) || has_chinese_chars(last_trimmed);
+    
+    if has_chinese {
+        // For Chinese names, last name typically comes first and is usually one character
+        // We want to show the last name character (family name) + first character of first name
+        let last_first_char = last_trimmed.chars().nth(0).unwrap();
+        let first_first_char = first_trimmed.chars().nth(0).unwrap();
+        
+        // If both are Chinese characters, just show them as-is (no uppercase needed)
+        if is_chinese_char(last_first_char) && is_chinese_char(first_first_char) {
+            format!("{}{}", last_first_char, first_first_char)
+        } else {
+            // Mixed case - apply uppercase to non-Chinese characters
+            format!("{}{}", 
+                if is_chinese_char(last_first_char) { last_first_char.to_string() } else { last_first_char.to_uppercase().to_string() },
+                if is_chinese_char(first_first_char) { first_first_char.to_string() } else { first_first_char.to_uppercase().to_string() }
+            )
+        }
+    } else {
+        // For English names, show first character of first name + first character of last name
+        let first_char = first_trimmed.chars().nth(0).unwrap().to_uppercase().to_string();
+        let last_char = last_trimmed.chars().nth(0).unwrap().to_uppercase().to_string();
+        format!("{}{}", first_char, last_char)
+    }
 }
 
 fn get_gradient_colors(name: String) -> (Color, Color) {

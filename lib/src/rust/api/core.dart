@@ -6,7 +6,7 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `generate`, `get_gradient_colors`, `get_name_to_display`
+// These functions are ignored because they are not marked as `pub`: `generate`, `get_gradient_colors`, `get_name_to_display_from_parts`, `get_name_to_display`, `has_chinese_chars`, `is_chinese_char`
 
 Future<Uint8List> generateWithName(String name) =>
     RustLib.instance.api.crateApiCoreGenerateWithName(name: name);

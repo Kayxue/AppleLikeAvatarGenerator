@@ -29,7 +29,10 @@ class _MyAppState extends State<MyApp> {
         body: Center(
           child: ClipOval(
             child: FutureBuilder<Uint8List>(
-              future: AppleLikeAvatarGenerator.generateWithName("測試使用者"),
+              future: AppleLikeAvatarGenerator.generateWithFirstNameLastName(
+                firstName: "沂",
+                lastName: "陳",
+              ),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const CircularProgressIndicator();
