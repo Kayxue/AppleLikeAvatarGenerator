@@ -1,3 +1,7 @@
+## 0.0.10
+
+* Better code readability for core.rs
+
 ## 0.0.9
 
 * Update Takumi version

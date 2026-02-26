@@ -229,7 +229,7 @@ fn generate(name: String, (start, end): (Color, Color)) -> Vec<u8> {
 
     let mut context = GlobalContext::default();
 
-    let viewport = Viewport::new(Some(512), Some(512));
+    let viewport: Viewport = (512, 512).into();
 
     context
         .font_context
