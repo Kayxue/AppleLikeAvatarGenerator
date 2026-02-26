@@ -1,3 +1,7 @@
+## 0.0.9
+
+* Update Takumi version
+
 ## 0.0.8
 
 * Chinese name support

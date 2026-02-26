@@ -6,8 +6,8 @@ use takumi::{
     layout::{
         node::{ContainerNode, NodeKind, TextNode},
         style::{
-            AlignItems, Angle, BackgroundImage, Color, ColorInput, CssValue, FontWeight,
-            GradientStop, JustifyContent, Length, LinearGradient, StopPosition, Style,
+            AlignItems, Angle, BackgroundImage, Color, ColorInput, CssValue, GradientStop,
+            JustifyContent, Length, LinearGradient, StopPosition, Style,
         },
         Viewport,
     },
@@ -194,7 +194,6 @@ fn generate(name: String, (start, end): (Color, Color)) -> Vec<u8> {
                 style: Some(Style {
                     font_size: CssValue::Value(Some(Length::Rem(12f32))),
                     color: CssValue::Value(ColorInput::Value(Color([255, 255, 255, 255]))),
-                    font_weight: CssValue::Value(FontWeight::from(600.0)),
                     ..Style::default()
                 }),
                 ..Default::default()
