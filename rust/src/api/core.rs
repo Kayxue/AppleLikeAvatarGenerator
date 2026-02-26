@@ -1,4 +1,4 @@
-use std::io::Cursor;
+use std::{borrow::Cow, io::Cursor};
 
 use image::ImageFormat;
 use regex::Regex;
@@ -6,12 +6,12 @@ use takumi::{
     layout::{
         node::{ContainerNode, NodeKind, TextNode},
         style::{
-            AlignItems, Angle, BackgroundImage, BackgroundImages, Color, CssValue, FontWeight,
-            GradientStop, JustifyContent, LengthUnit, LinearGradient, StopPosition, Style,
+            AlignItems, Angle, BackgroundImage, Color, ColorInput, CssValue, FontWeight,
+            GradientStop, JustifyContent, Length, LinearGradient, StopPosition, Style,
         },
         Viewport,
     },
-    rendering::render,
+    rendering::{render, RenderOptionsBuilder},
     GlobalContext,
 };
 
@@ -24,7 +24,8 @@ pub fn generate_with_name(name: String) -> Vec<u8> {
 
 #[flutter_rust_bridge::frb(positional)]
 pub fn generate_with_first_name_last_name(first_name: String, last_name: String) -> Vec<u8> {
-    let name_to_display = get_name_to_display_from_parts(first_name.to_owned(), last_name.to_owned());
+    let name_to_display =
+        get_name_to_display_from_parts(first_name.to_owned(), last_name.to_owned());
     let full_name = format!("{}{}", first_name, last_name);
     let colors = get_gradient_colors(full_name);
     generate(name_to_display, colors)
@@ -73,7 +74,7 @@ fn has_chinese_chars(s: &str) -> bool {
 fn get_name_to_display_from_parts(first_name: String, last_name: String) -> String {
     let first_trimmed = first_name.trim();
     let last_trimmed = last_name.trim();
-    
+
     // Handle empty names
     if first_trimmed.is_empty() && last_trimmed.is_empty() {
         return "?".to_string();
@@ -86,30 +87,49 @@ fn get_name_to_display_from_parts(first_name: String, last_name: String) -> Stri
         let first_char = first_trimmed.chars().nth(0).unwrap();
         return first_char.to_uppercase().to_string();
     }
-    
+
     // Check if either name contains Chinese characters
     let has_chinese = has_chinese_chars(first_trimmed) || has_chinese_chars(last_trimmed);
-    
+
     if has_chinese {
         // For Chinese names, last name typically comes first and is usually one character
         // We want to show the last name character (family name) + first character of first name
         let last_first_char = last_trimmed.chars().nth(0).unwrap();
         let first_first_char = first_trimmed.chars().nth(0).unwrap();
-        
+
         // If both are Chinese characters, just show them as-is (no uppercase needed)
         if is_chinese_char(last_first_char) && is_chinese_char(first_first_char) {
             format!("{}{}", last_first_char, first_first_char)
         } else {
             // Mixed case - apply uppercase to non-Chinese characters
-            format!("{}{}", 
-                if is_chinese_char(last_first_char) { last_first_char.to_string() } else { last_first_char.to_uppercase().to_string() },
-                if is_chinese_char(first_first_char) { first_first_char.to_string() } else { first_first_char.to_uppercase().to_string() }
+            format!(
+                "{}{}",
+                if is_chinese_char(last_first_char) {
+                    last_first_char.to_string()
+                } else {
+                    last_first_char.to_uppercase().to_string()
+                },
+                if is_chinese_char(first_first_char) {
+                    first_first_char.to_string()
+                } else {
+                    first_first_char.to_uppercase().to_string()
+                }
             )
         }
     } else {
         // For English names, show first character of first name + first character of last name
-        let first_char = first_trimmed.chars().nth(0).unwrap().to_uppercase().to_string();
-        let last_char = last_trimmed.chars().nth(0).unwrap().to_uppercase().to_string();
+        let first_char = first_trimmed
+            .chars()
+            .nth(0)
+            .unwrap()
+            .to_uppercase()
+            .to_string();
+        let last_char = last_trimmed
+            .chars()
+            .nth(0)
+            .unwrap()
+            .to_uppercase()
+            .to_string();
         format!("{}{}", first_char, last_char)
     }
 }
@@ -168,55 +188,67 @@ fn get_gradient_colors(name: String) -> (Color, Color) {
 
 fn generate(name: String, (start, end): (Color, Color)) -> Vec<u8> {
     let node = NodeKind::Container(ContainerNode {
-        children: Some(vec![NodeKind::Text(TextNode {
-            text: name,
-            style: Style {
-                font_size: CssValue::Value(Some(LengthUnit::Rem(12f32))),
-                color: CssValue::Value(Color([255, 255, 255, 255])),
-                font_weight: CssValue::Value(FontWeight::from(600.0)),
-                ..Style::default()
-            },
-        })]),
-        style: Style {
-            background_image: CssValue::Value(Some(BackgroundImages(
-                vec![BackgroundImage::Linear(LinearGradient {
+        children: Some(
+            [NodeKind::Text(TextNode {
+                text: name,
+                style: Some(Style {
+                    font_size: CssValue::Value(Some(Length::Rem(12f32))),
+                    color: CssValue::Value(ColorInput::Value(Color([255, 255, 255, 255]))),
+                    font_weight: CssValue::Value(FontWeight::from(600.0)),
+                    ..Style::default()
+                }),
+                ..Default::default()
+            })]
+            .into(),
+        ),
+        style: Some(Style {
+            background_image: CssValue::Value(Some(
+                [BackgroundImage::Linear(LinearGradient {
                     angle: Angle::new(135.0),
-                    stops: vec![
+                    stops: [
                         GradientStop::ColorHint {
-                            color: start,
-                            hint: Some(StopPosition(LengthUnit::Percentage(0.0))),
+                            color: ColorInput::Value(start),
+                            hint: Some(StopPosition(Length::Percentage(0.0))),
                         },
                         GradientStop::ColorHint {
-                            color: end,
-                            hint: Some(StopPosition(LengthUnit::Percentage(100.0))),
+                            color: ColorInput::Value(end),
+                            hint: Some(StopPosition(Length::Percentage(100.0))),
                         },
                     ]
                     .into(),
                 })]
                 .into(),
-            ))),
-            width: CssValue::Value(LengthUnit::Rem(32.0)),
-            height: CssValue::Value(LengthUnit::Rem(32.0)),
-            align_items: CssValue::Value(Some(AlignItems::Center)),
-            justify_content: CssValue::Value(Some(JustifyContent::Center)),
+            )),
+            width: CssValue::Value(Length::Rem(32.0)),
+            height: CssValue::Value(Length::Rem(32.0)),
+            align_items: CssValue::Value(AlignItems::Center),
+            justify_content: CssValue::Value(JustifyContent::Center),
             ..Style::default()
-        },
+        }),
+        ..Default::default()
     });
 
-    let context = GlobalContext::default();
+    let mut context = GlobalContext::default();
 
-    let viewport = Viewport::new(512, 512);
+    let viewport = Viewport::new(Some(512), Some(512));
 
     context
         .font_context
         .load_and_store(
-            include_bytes!("../../MapleMonoNormalNL-NF-CN-Regular.ttf"),
+            Cow::from(include_bytes!("../../MapleMonoNormalNL-NF-CN-Regular.ttf")),
             None,
             None,
         )
         .unwrap();
 
-    let img = render(viewport, &context, node).unwrap();
+    let options = RenderOptionsBuilder::default()
+        .viewport(viewport)
+        .node(node)
+        .global(&context)
+        .build()
+        .unwrap();
+
+    let img = render(options).unwrap();
 
     let mut buf: Vec<u8> = Vec::new();
 
