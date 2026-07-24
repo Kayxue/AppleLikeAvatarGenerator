@@ -5,7 +5,7 @@
 ## 0.1.0
 
 * Upgrade dependencies
-* Upgrade Takumi version from 0.69.0 to 2.5.2
+* Upgrade Takumi version from 0.69.0 to 2.4.2
 
 ## 0.0.10
 
