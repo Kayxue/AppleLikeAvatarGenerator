@@ -12,7 +12,7 @@ use takumi::{
 #[flutter_rust_bridge::frb(positional)]
 pub fn generate_with_name(name: String) -> Vec<u8> {
     let name_to_display = get_name_to_display(name.to_owned());
-    let colors = get_gradient_colors(name);
+    let colors = get_gradient_colors(&name);
     generate(name_to_display, colors)
 }
 
@@ -21,8 +21,14 @@ pub fn generate_with_first_name_last_name(first_name: String, last_name: String)
     let name_to_display =
         get_name_to_display_from_parts(first_name.to_owned(), last_name.to_owned());
     let full_name = format!("{}{}", first_name, last_name);
-    let colors = get_gradient_colors(full_name);
+    let colors = get_gradient_colors(&full_name);
     generate(name_to_display, colors)
+}
+
+#[flutter_rust_bridge::frb(positional)]
+pub fn generate_with_string(str: String) -> Vec<u8> {
+    let color = get_gradient_colors(&str);
+    generate(str, color)
 }
 
 fn get_name_to_display(name: String) -> String {
@@ -128,7 +134,7 @@ fn get_name_to_display_from_parts(first_name: String, last_name: String) -> Stri
     }
 }
 
-fn get_gradient_colors(name: String) -> (Color, Color) {
+fn get_gradient_colors(name: &str) -> (Color, Color) {
     let gradients = [
         (
             Color([0xFF, 0x6B, 0x6B, 0xFF]),

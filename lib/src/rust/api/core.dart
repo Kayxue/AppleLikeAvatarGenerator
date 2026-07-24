@@ -18,3 +18,6 @@ Future<Uint8List> generateWithFirstNameLastName(
   firstName: firstName,
   lastName: lastName,
 );
+
+Future<Uint8List> generateWithString(String str) =>
+    RustLib.instance.api.crateApiCoreGenerateWithString(str: str);

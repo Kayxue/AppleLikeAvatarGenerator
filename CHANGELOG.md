@@ -1,3 +1,7 @@
+## 0.1.1
+
+* Add generateWithString method to generate images with given string directly without additional processing.
+
 ## 0.1.0
 
 * Upgrade dependencies

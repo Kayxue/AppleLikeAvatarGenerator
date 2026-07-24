@@ -11,7 +11,7 @@ class AppleLikeAvatarGenerator {
     await RustLib.init();
   }
 
-  /// Generates an avatar image based on the provided [name].
+  /// Generates an avatar image based on the provided [name] (include getting character processing).
   static Future<Uint8List> generateWithName(String name) async {
     return core.generateWithName(name);
   }
@@ -22,5 +22,10 @@ class AppleLikeAvatarGenerator {
     required String lastName,
   }) async {
     return core.generateWithFirstNameLastName(firstName, lastName);
+  }
+
+  /// Generates an avatar image with provided [str] (no additional string processing).
+  static Future<Uint8List> generateWithString(String str) async {
+    return core.generateWithString(str);
   }
 }
