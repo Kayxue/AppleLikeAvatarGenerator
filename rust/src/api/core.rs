@@ -1,12 +1,8 @@
 use regex::Regex;
 use takumi::{
     prelude::{
-        AlignItems, Angle, BackgroundImage, Color, ColorInput, FontResource, FontSize, Fonts,
-        GradientStop, JustifyContent, Length, LinearGradient,
-        LinearGradientDirection::{self},
-        Node, OutputFormat, RenderOptions, StopPosition, Style, StyleDeclaration, Viewport,
-    },
-    render, write_image,
+        AlignItems, Angle, BackgroundImage, Color, ColorInput, Display, FontResource, FontSize, Fonts, GradientStop, JustifyContent, Length, LinearGradient, LinearGradientDirection::{self}, Node, OutputFormat, RenderOptions, StopPosition, Style, StyleDeclaration, Viewport,
+    }, render, write_image,
 };
 
 #[flutter_rust_bridge::frb(positional)]
@@ -211,7 +207,8 @@ fn generate(name: String, (start, end): (Color, Color)) -> Vec<u8> {
             ]))))
             .with(StyleDeclaration::width(Length::Rem(32.0)))
             .with(StyleDeclaration::height(Length::Rem(32.0)))
-            .with(StyleDeclaration::AlignItems(AlignItems::Center))
+            .with(StyleDeclaration::display(Display::Flex))
+            .with(StyleDeclaration::align_items(AlignItems::Center))
             .with(StyleDeclaration::justify_content(JustifyContent::Center)),
     );
 
