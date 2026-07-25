@@ -1,18 +1,12 @@
-use std::{borrow::Cow, io::Cursor};
-
-use image::ImageFormat;
 use regex::Regex;
 use takumi::{
-    layout::{
-        node::{ContainerNode, NodeKind, TextNode},
-        style::{
-            AlignItems, Angle, BackgroundImage, Color, ColorInput, CssValue, GradientStop,
-            JustifyContent, Length, LinearGradient, StopPosition, Style,
-        },
-        Viewport,
+    prelude::{
+        AlignItems, Angle, BackgroundImage, Color, ColorInput, FontResource, FontSize, Fonts,
+        GradientStop, JustifyContent, Length, LinearGradient,
+        LinearGradientDirection::{self},
+        Node, OutputFormat, RenderOptions, StopPosition, Style, StyleDeclaration, Viewport,
     },
-    rendering::{render, RenderOptionsBuilder},
-    GlobalContext,
+    render, write_image,
 };
 
 #[flutter_rust_bridge::frb(positional)]
@@ -187,74 +181,60 @@ fn get_gradient_colors(name: String) -> (Color, Color) {
 }
 
 fn generate(name: String, (start, end): (Color, Color)) -> Vec<u8> {
-    let node = NodeKind::Container(ContainerNode {
-        children: Some(
-            [NodeKind::Text(TextNode {
-                text: name,
-                style: Some(Style {
-                    font_size: CssValue::Value(Some(Length::Rem(12f32))),
-                    color: CssValue::Value(ColorInput::Value(Color([255, 255, 255, 255]))),
-                    ..Style::default()
-                }),
-                ..Default::default()
-            })]
-            .into(),
-        ),
-        style: Some(Style {
-            background_image: CssValue::Value(Some(
-                [BackgroundImage::Linear(LinearGradient {
-                    angle: Angle::new(135.0),
-                    stops: [
-                        GradientStop::ColorHint {
-                            color: ColorInput::Value(start),
-                            hint: Some(StopPosition(Length::Percentage(0.0))),
-                        },
-                        GradientStop::ColorHint {
-                            color: ColorInput::Value(end),
-                            hint: Some(StopPosition(Length::Percentage(100.0))),
-                        },
-                    ]
-                    .into(),
-                })]
-                .into(),
-            )),
-            width: CssValue::Value(Length::Rem(32.0)),
-            height: CssValue::Value(Length::Rem(32.0)),
-            align_items: CssValue::Value(AlignItems::Center),
-            justify_content: CssValue::Value(JustifyContent::Center),
-            ..Style::default()
-        }),
-        ..Default::default()
-    });
+    let node = Node::container([Node::text(name).with_style(
+        Style::default()
+            .with(StyleDeclaration::font_size(FontSize::Length(Length::Rem(
+                12f32,
+            ))))
+            .with(StyleDeclaration::Color(ColorInput::Value(Color([
+                255, 255, 255, 255,
+            ])))),
+    )])
+    .with_style(
+        Style::default()
+            .with(StyleDeclaration::background_image(Some(Box::new([
+                BackgroundImage::Linear(
+                    LinearGradient::builder()
+                        .direction(LinearGradientDirection::Angle(Angle::new(135.0)))
+                        .stops([
+                            GradientStop::ColorHint {
+                                color: ColorInput::Value(start),
+                                hint: Some(StopPosition(Length::Percentage(0.0))),
+                            },
+                            GradientStop::ColorHint {
+                                color: ColorInput::Value(end),
+                                hint: Some(StopPosition(Length::Percentage(100.0))),
+                            },
+                        ])
+                        .build(),
+                ),
+            ]))))
+            .with(StyleDeclaration::width(Length::Rem(32.0)))
+            .with(StyleDeclaration::height(Length::Rem(32.0)))
+            .with(StyleDeclaration::AlignItems(AlignItems::Center))
+            .with(StyleDeclaration::justify_content(JustifyContent::Center)),
+    );
 
-    let mut context = GlobalContext::default();
+    let viewport: Viewport = Viewport::new((512, 512));
 
-    let viewport: Viewport = (512, 512).into();
-
-    context
-        .font_context
-        .load_and_store(
-            Cow::from(include_bytes!("../../MapleMonoNormalNL-NF-CN-Regular.ttf")),
-            None,
-            None,
-        )
+    let mut fonts = Fonts::default();
+    fonts
+        .register(FontResource::new(include_bytes!(
+            "../../MapleMonoNormalNL-NF-CN-Regular.ttf"
+        )))
         .unwrap();
 
-    let options = RenderOptionsBuilder::default()
+    let options = RenderOptions::builder()
         .viewport(viewport)
         .node(node)
-        .global(&context)
-        .build()
-        .unwrap();
+        .fonts(&fonts)
+        .build();
 
     let img = render(options).unwrap();
 
     let mut buf: Vec<u8> = Vec::new();
 
-    {
-        let mut cursor = Cursor::new(&mut buf);
-        img.write_to(&mut cursor, ImageFormat::Png).unwrap();
-    }
+    write_image(&img, &mut buf, OutputFormat::Png).unwrap();
 
     buf
 }
